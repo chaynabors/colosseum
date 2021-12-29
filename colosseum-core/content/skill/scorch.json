@@ -1,0 +1,15 @@
+{
+  "display_name": "Scorch",
+  "description": "Apply fire damage over time to any single target on the field for 3 turns",
+  "effect": {
+    "sub_effects": [{
+      "DOT": {
+        "aspect": "Fire",
+        "multiplier": 0.861,
+        "lifetime": { "Active": { "duration": 3 } }
+      }
+    }],
+    "target_flags": [["Any"]],
+    "targeting_scheme": "SingleTarget"
+  }
+}

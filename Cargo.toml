@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "colosseum-core",
+    "colosseum-client",
+    "colosseum-server",
+]

@@ -1,0 +1,14 @@
+{
+  "display_name": "Sweep",
+  "description": "Physically attack any three targets on the field",
+  "effect": {
+    "sub_effects": [{
+      "Damage": {
+        "aspect": "Physical",
+        "multiplier": 0.8
+      }
+    }],
+    "target_flags": [["Any"]],
+    "targeting_scheme": { "MultiTarget": 3 }
+  }
+}

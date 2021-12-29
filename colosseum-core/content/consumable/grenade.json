@@ -1,0 +1,15 @@
+{
+  "display_name": "Grenade",
+  "description": "",
+  "max_count": 3,
+  "effect": {
+    "sub_effects": [{
+      "Damage": {
+          "aspect": "Physical",
+          "scaling": { "numerator": 3, "denominator": 1 }
+      }
+    }],
+    "target_flags": [["Any"]],
+    "targeting_scheme": "SingleTarget"
+  }
+}

@@ -1,0 +1,29 @@
+// Copyright 2021 Chay Nabors.
+
+pub mod aspect;
+pub mod attribute;
+#[path = "generated/bodywear.rs"]
+pub mod bodywear;
+pub mod combat_event;
+pub mod combat_state;
+pub mod combatant;
+pub mod consumable;
+pub mod dot;
+pub mod effect;
+#[path = "generated/footwear.rs"]
+pub mod footwear;
+pub mod gender;
+#[path = "generated/handwear.rs"]
+pub mod handwear;
+#[path = "generated/headwear.rs"]
+pub mod headwear;
+pub mod item;
+#[path = "generated/legwear.rs"]
+pub mod legwear;
+pub mod lifetime;
+pub mod message;
+pub mod modifier;
+pub mod party;
+pub mod skill;
+pub mod target;
+pub mod weapon;

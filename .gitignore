@@ -1,0 +1,14 @@
+# Compilation target
+target/
+
+# Nonroot lockfile
+*/Cargo.lock
+
+# rustfmt backups
+**/*.rs.bk
+
+# Editor configuration files
+.vscode
+
+# Anything generated
+**/generated/*
