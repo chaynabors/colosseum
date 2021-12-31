@@ -1,12 +1,14 @@
 // Copyright 2021 Chay Nabors.
 
+use std::path::Path;
+
 use codegen::Scope;
 use codegen::Variant;
-use heck::CamelCase;
+use heck::ToUpperCamelCase;
 
 fn generate_common(scope: &mut Scope, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let identifier = scope
-        .new_enum(&format!("{}Identifier", content.to_camel_case()))
+        .new_enum(&format!("{}Identifier", content.to_upper_camel_case()))
         .derive("Copy")
         .derive("Clone")
         .derive("Debug")
@@ -21,19 +23,19 @@ fn generate_common(scope: &mut Scope, content: &str) -> Result<(), Box<dyn std::
 
     for read_dir in std::fs::read_dir(&format!("content/{}/", content))? {
         let name = read_dir?.path().file_stem().unwrap().to_owned().into_string().unwrap();
-        identifier.push_variant(Variant::new(&format!("#[strum(serialize = \"{}\")] {}", name, name.to_camel_case())));
+        identifier.push_variant(Variant::new(&format!("#[strum(serialize = \"{}\")] {}", name, name.to_upper_camel_case())));
     }
 
     scope
-        .new_impl(&format!("&{}", content.to_camel_case()))
-        .impl_trait(&format!("From<{}Identifier>", content.to_camel_case()))
+        .new_impl(&format!("&{}", content.to_upper_camel_case()))
+        .impl_trait(&format!("From<{}Identifier>", content.to_upper_camel_case()))
         .new_fn("from")
-        .arg("from", &format!("{}Identifier", content.to_camel_case()))
+        .arg("from", &format!("{}Identifier", content.to_upper_camel_case()))
         .ret("Self")
         .line("&STORE[&from]");
 
     scope
-        .new_impl(&format!("{}Identifier", content.to_camel_case()))
+        .new_impl(&format!("{}Identifier", content.to_upper_camel_case()))
         .impl_trait("fmt::Display")
         .new_fn("fmt")
         .arg_ref_self()
@@ -41,11 +43,11 @@ fn generate_common(scope: &mut Scope, content: &str) -> Result<(), Box<dyn std::
         .ret("fmt::Result")
         .line("write!(f, \"{:?}\", self)");
 
-    let store_type = format!("HashMap<{}Identifier, {}>", content.to_camel_case(), content.to_camel_case());
+    let store_type = format!("HashMap<{}Identifier, {}>", content.to_upper_camel_case(), content.to_upper_camel_case());
     let mut store = "lazy_static::lazy_static! {\n".to_owned();
     store.push_str(&format!("    static ref STORE: {} = {{\n", store_type));
     store.push_str("        let mut hashmap = HashMap::new();\n");
-    store.push_str("        for file in DIR.files {\n");
+    store.push_str("        for file in DIR.files() {\n");
     store.push_str("            let file_name = file.path().file_stem().unwrap().to_str().unwrap();\n");
     store.push_str(
         "            let stored = serde_json::from_str(file.contents_utf8().unwrap()).expect(&format!(\"failed to \
@@ -53,14 +55,14 @@ fn generate_common(scope: &mut Scope, content: &str) -> Result<(), Box<dyn std::
     );
     store.push_str(&format!(
         "            hashmap.insert({}Identifier::from_str(file_name).unwrap(), stored);\n",
-        content.to_camel_case()
+        content.to_upper_camel_case()
     ));
     store.push_str("        }\n\n");
     store.push_str("        hashmap\n");
     store.push_str("    };\n");
     store.push_str("}\n");
 
-    scope.raw(&format!("const DIR: include_dir::Dir = include_dir::include_dir!(\"content/{}\");", content));
+    scope.raw(&format!("const DIR: include_dir::Dir = include_dir::include_dir!(\"$CARGO_MANIFEST_DIR/content/{}\");", content));
     scope.raw(&store);
 
     Ok(())
@@ -75,10 +77,9 @@ fn generate_wearable(wearable: &str) -> Result<(), Box<dyn std::error::Error>> {
     scope.import("std", "fmt");
     scope.import("std::str", "FromStr");
     scope.import("strum", "EnumString");
-    scope.raw("// THIS IS A GENERATED FILE AND NOT INTENDED FOR EDITING");
 
     scope
-        .new_struct(&wearable.to_camel_case())
+        .new_struct(&wearable.to_upper_camel_case())
         .vis("pub")
         .derive("Debug")
         .derive("Default")
@@ -93,7 +94,7 @@ fn generate_wearable(wearable: &str) -> Result<(), Box<dyn std::error::Error>> {
         .field("pub physical_defense", "f64");
 
     scope
-        .new_impl(&wearable.to_camel_case())
+        .new_impl(&wearable.to_upper_camel_case())
         .new_fn("defense")
         .vis("pub")
         .arg_ref_self()
@@ -110,7 +111,7 @@ fn generate_wearable(wearable: &str) -> Result<(), Box<dyn std::error::Error>> {
 
     std::fs::write(
         &format!("src/generated/{}.rs", wearable),
-        &format!("// Copyright 2021 Chay Nabors.\n\n{}", scope.to_string()),
+        &format!("// Copyright 2021 Chay Nabors.\n// THIS IS A GENERATED FILE AND NOT INTENDED FOR EDITING\n\n{}", scope.to_string()),
     )?;
 
     Ok(())
@@ -128,7 +129,7 @@ fn generate_wearables() -> Result<(), Box<dyn std::error::Error>> {
 
 fn generate_content(content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut scope = Scope::new();
-    scope.import("super", &format!("{}", content.to_camel_case()));
+    scope.import("super", &format!("{}", content.to_upper_camel_case()));
     scope.import("serde", "Deserialize");
     scope.import("serde", "Serialize");
     scope.import("std::collections", "HashMap");
@@ -148,6 +149,11 @@ fn generate_content(content: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let generated = Path::new("src/generated/");
+    if !generated.exists() {
+        std::fs::create_dir("src/generated")?;
+    }
+
     generate_wearables()?;
     generate_content("consumable")?;
     generate_content("skill")?;

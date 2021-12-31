@@ -2,20 +2,23 @@
 
 mod camera;
 mod config;
-mod game_state;
-mod socket;
+mod error;
+mod renderer;
 
-use std::fs;
 use std::io::Write;
-use std::path::Path;
-use std::rc::Rc;
 
-use gear::Engine;
+use camera::Camera;
+use config::Config;
+use error::Error;
+use nalgebra::Point3;
+use nalgebra::UnitQuaternion;
+use renderer::Renderer;
+use winit::dpi::PhysicalSize;
+use winit::event_loop::ControlFlow;
+use winit::event_loop::EventLoop;
+use winit::window::WindowBuilder;
 
-use self::config::Config;
-use self::game_state::GameState;
-
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     env_logger::Builder::new()
         .format(|buf, record| writeln!(buf, "[{}: {}] {}", record.level(), record.metadata().target(), record.args()))
@@ -25,39 +28,47 @@ async fn main() {
         .filter(Some("wgpu_core"), log::LevelFilter::Warn)
         .init();
 
-    let config = Rc::new(load_config());
+    let config = serde_json::from_slice::<Config>(include_bytes!("../config.json")).unwrap();
     let resolution = config.resolution;
+    let mut resolution = PhysicalSize::new(resolution[0], resolution[1]);
 
-    let engine = Engine::new().await;
-    engine.window.resize(resolution);
+    let event_loop = EventLoop::new();
+    let window = match WindowBuilder::new()
+        .with_title("Colosseum")
+        .with_inner_size(resolution)
+        .build(&event_loop)
+    {
+        Ok(window) => window,
+        Err(_) => panic!("{:?}", Error::WindowCreationFailed),
+    };
 
-    let mut game_state = GameState::new(config, &engine);
+    let camera = Camera::new(Point3::new(0.0, 0.0, 3.0), UnitQuaternion::identity(), 90.0);
+    let mut renderer = Renderer::new(&window).await.unwrap();
 
-    engine.run(move |engine, event| {
-        let new_state = match &mut game_state {
-            GameState::MenuState(state) => state.handle_event(&event, engine),
-            GameState::CombatState(state) => state.handle_event(&event, engine),
-        };
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
 
-        match new_state {
-            Some(state) => game_state = state,
-            None => (),
+        match event {
+            winit::event::Event::WindowEvent { event, .. } => match event {
+                winit::event::WindowEvent::Resized(size) => {
+                    resolution = size;
+                    renderer.resize(resolution);
+                }
+                winit::event::WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                winit::event::WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    resolution = *new_inner_size;
+                    renderer.resize(resolution);
+                },
+                _ => (),
+            },
+            winit::event::Event::MainEventsCleared => (),
+            winit::event::Event::RedrawRequested(_) => if let Err(e) = {
+                let view_projection = camera.projection(resolution) * camera.view().to_homogeneous();
+                renderer.render(view_projection)
+            } {
+                panic!("{:?}", e);
+            },
+            _ => (),
         }
     });
-}
-
-fn load_config() -> Config {
-    let path = Path::new("client.json");
-
-    match path.exists() {
-        true => {
-            let config = fs::read(path).unwrap();
-            serde_json::from_slice::<Config>(&config).unwrap()
-        },
-        false => {
-            let config = Config::default();
-            fs::write(path, serde_json::to_string_pretty(&config).unwrap()).unwrap();
-            config
-        },
-    }
 }

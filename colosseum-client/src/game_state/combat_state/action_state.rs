@@ -4,16 +4,12 @@ use std::cell::RefCell;
 use std::net::SocketAddr;
 use std::rc::Rc;
 
-use colosseum::combat_event::CombatEvent;
-use colosseum::combat_state::CombatState;
-use colosseum::effect::TargetingScheme;
-use colosseum::skill::SkillIdentifier;
-use colosseum::target::Target;
-use colosseum::weapon::Weapon;
-use gear::event::Event;
-use gear::KeyCode;
-use gear::KeyState;
-use gear::Socket;
+use colosseum_core::combat_event::CombatEvent;
+use colosseum_core::combat_state::CombatState;
+use colosseum_core::effect::TargetingScheme;
+use colosseum_core::skill::SkillIdentifier;
+use colosseum_core::target::Target;
+use colosseum_core::weapon::Weapon;
 use log::warn;
 
 use super::confirmation_state::ConfirmationState;

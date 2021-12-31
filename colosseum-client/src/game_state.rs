@@ -7,7 +7,6 @@ mod state_transition;
 use std::rc::Rc;
 
 use combat_state::CombatState;
-use gear::Engine;
 use menu_state::MenuState;
 
 use crate::config::Config;

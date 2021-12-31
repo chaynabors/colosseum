@@ -4,15 +4,15 @@ use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::net::SocketAddrV4;
 
-use colosseum::bodywear::BodywearIdentifier;
-use colosseum::combatant::Combatant;
-use colosseum::footwear::FootwearIdentifier;
-use colosseum::gender::Gender;
-use colosseum::handwear::HandwearIdentifier;
-use colosseum::legwear::LegwearIdentifier;
-use colosseum::party::Party;
-use colosseum::skill::SkillIdentifier;
-use colosseum::weapon::WeaponIdentifier;
+use colosseum_core::bodywear::BodywearIdentifier;
+use colosseum_core::combatant::Combatant;
+use colosseum_core::footwear::FootwearIdentifier;
+use colosseum_core::gender::Gender;
+use colosseum_core::handwear::HandwearIdentifier;
+use colosseum_core::legwear::LegwearIdentifier;
+use colosseum_core::party::Party;
+use colosseum_core::skill::SkillIdentifier;
+use colosseum_core::weapon::WeaponIdentifier;
 use serde::Deserialize;
 use serde::Serialize;
 

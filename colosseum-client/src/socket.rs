@@ -4,9 +4,7 @@ use std::convert::TryInto;
 use std::fmt::Debug;
 use std::net::SocketAddr;
 
-use colosseum::message::Message;
-use gear::Packet;
-use gear::Socket;
+use colosseum_core::message::Message;
 
 pub trait ClientSocket {
     fn send_message<T>(&self, address: SocketAddr, message: T)

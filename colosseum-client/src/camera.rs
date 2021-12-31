@@ -1,48 +1,43 @@
 // Copyright 2021 Chay Nabors.
 
-use gear::math::Isometry3;
-use gear::math::Matrix4;
-use gear::math::Point3;
-use gear::math::UnitQuaternion;
-use gear::math::Vector3;
-use gear::math_ext::reversed_infinite_perspective_rh_zo;
+use nalgebra::Isometry3;
+use nalgebra::Matrix4;
+use nalgebra::Point3;
+use nalgebra::UnitQuaternion;
+use nalgebra::Vector3;
+use nalgebra_glm::reversed_infinite_perspective_rh_zo;
+use winit::dpi::PhysicalPosition;
+use winit::dpi::PhysicalSize;
 
 pub struct Camera {
     pub position: Point3<f32>,
     pub rotation: UnitQuaternion<f32>,
     pub fov: f32,
-    pub znear: f32,
-    pub aspect_ratio: f32,
 }
 
 impl Camera {
-    // pub fn roll(&self) -> f32 {
-    //    self.rotation.euler_angles().0
-    //}
-    // pub fn pitch(&self) -> f32 {
-    //    self.rotation.euler_angles().1
-    //}
-    // pub fn yaw(&self) -> f32 {
-    //    self.rotation.euler_angles().2
-    //}
+    pub fn new(position: Point3<f32>, rotation: UnitQuaternion<f32>, fov: f32) -> Self {
+        Self {
+            position,
+            rotation,
+            fov,
+        }
+    }
 
     pub fn view(&self) -> Isometry3<f32> {
         Isometry3::look_at_rh(
             &self.position,
-            &(self.position - (self.rotation.inverse() * Vector3::z())),
+            &Point3::origin(),
+            //&(self.position - (self.rotation.inverse() * Vector3::z())),
             &Vector3::y_axis(),
         )
     }
 
-    pub fn projection(&self) -> Matrix4<f32> {
-        reversed_infinite_perspective_rh_zo(self.aspect_ratio, self.fov, self.znear)
+    pub fn projection(&self, resolution: PhysicalSize<u32>) -> Matrix4<f32> {
+        reversed_infinite_perspective_rh_zo(resolution.width as f32 / resolution.height as f32, self.fov, 0.1)
     }
 
-    pub fn resize(&mut self, size: [u32; 2]) {
-        self.aspect_ratio = size[0] as f32 / size[1] as f32;
-    }
-
-    pub fn look_at(&mut self, target: Point3<f32>) {
-        self.rotation = UnitQuaternion::look_at_rh(&(target - self.position), &Vector3::y_axis());
-    }
+    //pub fn look_at(&mut self, target: Point3<f32>) {
+    //    self.rotation = UnitQuaternion::look_at_rh(&(target - self.position), &Vector3::y_axis());
+    //}
 }

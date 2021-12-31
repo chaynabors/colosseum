@@ -25,23 +25,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let env_var = env::var(target_dir)?;
     let output_path = Path::new(&env_var).join("..").join("..").join("..");
 
-    info!("Copying config");
-    copy_config(&output_path)?;
-    info!("Copied config");
-
     info!("Copying content");
     copy_content(&output_path)?;
     info!("Copied content");
-
-    Ok(())
-}
-
-fn copy_config(output_path: &Path) -> Result<(), Box<dyn Error>> {
-    let config = Path::new("client.json");
-    if config.exists() {
-        let output_path = output_path.clone().join("client.json");
-        std::fs::copy(config, output_path)?;
-    }
 
     Ok(())
 }
